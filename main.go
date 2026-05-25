@@ -36,8 +36,10 @@ func main() {
 	fmt.Println("||    SIMTAB    ||")
 	fmt.Println("==================")
 	var pilihan int = -1
-	for pilihan != 0 {
-		fmt.Println("1.data 2.edit 3.cari 4.urut 5.Lunas 6.statistik")
+	for pilihan != 7 {
+		fmt.Println("=======================================================")
+		fmt.Println("1.data 2.edit 3.cari 4.urut 5.Lunas 6.statistik 7.exite")
+		fmt.Println("=======================================================")
 		fmt.Print("pilihan: ")
 		fmt.Scan(&pilihan)
 		switch pilihan {
