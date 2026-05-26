@@ -131,7 +131,7 @@ func crud(data *list) {
 			}
 		}
 		if found {
-			fmt.Println("nama sudah ada")
+			fmt.Println("tidak bisa di masukan nama sudah tersedia")
 		} else {
 			*data = append(*data, newList)
 		}
