@@ -24,11 +24,11 @@ func main() {
 		{index: 3, name: "sample3", nominal: 400, date: 22},
 		{index: 4, name: "sample4", nominal: 700, date: 23},
 		{index: 5, name: "sample5", nominal: 50, date: 10},
-		{index: 6, name: "sample5", nominal: 130, date: 32},
-		{index: 7, name: "sample2", nominal: 230, date: 10},
-		{index: 8, name: "sample5", nominal: 34, date: 11},
-		{index: 9, name: "sample4", nominal: 100, date: 10},
-		{index: 10, name: "sample4", nominal: 40, date: 7},
+		{index: 6, name: "sample6", nominal: 130, date: 32},
+		{index: 7, name: "sample7", nominal: 230, date: 10},
+		{index: 8, name: "sample8", nominal: 34, date: 11},
+		{index: 9, name: "sample9", nominal: 100, date: 10},
+		{index: 10, name: "sample10", nominal: 40, date: 7},
 	}
 	note(&data)
 	// menu
@@ -38,7 +38,7 @@ func main() {
 	var pilihan int = -1
 	for pilihan != 7 {
 		fmt.Println("=======================================================")
-		fmt.Println("1.data 2.edit 3.cari 4.urut 5.Lunas 6.statistik 7.exite")
+		fmt.Println("1.view 2.edit 3.cari 4.urut 5.Lunas 6.statistik 7.exit")
 		fmt.Println("=======================================================")
 		fmt.Print("pilihan: ")
 		fmt.Scan(&pilihan)
@@ -47,7 +47,20 @@ func main() {
 			fmt.Println("==================")
 			fmt.Println("||     LIHAT    ||")
 			fmt.Println("==================")
-			read(data)
+			var pilih int
+			fmt.Print("1.semua 2.lunas 3.hutang")
+			fmt.Scan(&pilih)
+			dataLunas, dataUtang := statistik(data)
+			switch pilih {
+			case 1:
+				read(data)
+			case 2:
+				read(dataLunas)
+				fmt.Println("total lunas:", total(dataLunas))
+			case 3:
+				read(dataUtang)
+				fmt.Println("total lunas:", total(dataUtang))
+			}
 		case 2:
 			fmt.Println("==================")
 			fmt.Println("||     EDIT     ||")
@@ -87,8 +100,10 @@ func main() {
 		case 6:
 			fmt.Println("===================")
 			fmt.Println("||   STATISTIK   ||")
-			fmt.Println("===================")	
-			statistik(data)	
+			fmt.Println("===================")
+			lunas,utang := statistik(data)
+			fmt.Println("persentase Lunas:", (total(lunas)/total(data))*100, "%")
+			fmt.Println("persentase Utang:", (total(utang)/total(data))*100, "%")
 		}
 
 	}
@@ -106,24 +121,38 @@ func crud(data *list) {
 	case 1:
 		// create
 		var newList tagihan
+		var found bool
 		newList.index = len(*data) + 1
 		fmt.Println("masukan nama nominal tanggal:")
 		fmt.Scan(&newList.name, &newList.nominal, &newList.date)
-		*data = append(*data, newList)
+		for _, vel := range *data {
+			if newList.name == vel.name {
+				found = true
+			}
+		}
+		if found {
+			fmt.Println("nama sudah ada")
+		} else {
+			*data = append(*data, newList)
+		}
 		note(data)
 		crud(data)
 	case 2:
 		// edit
+		var found bool
 		var edit int
-		fmt.Println("masukan data no yang ingin di edit:")
+		fmt.Println("masukan index data yang ingin di edit:")
 		fmt.Scan(&edit)
 		for _, vel := range *data {
 			if edit == vel.index {
-				fmt.Println("masukan nama nominal tanggal:")
-				fmt.Scan(&(*data)[edit-1].name, &(*data)[edit-1].nominal, &(*data)[edit-1].date)
-			} else {
-				fmt.Println("data tidak ditemukan")
+				found = true
 			}
+		}
+		if found {
+			fmt.Println("masukan nama nominal tanggal:")
+			fmt.Scan(&(*data)[edit-1].name, &(*data)[edit-1].nominal, &(*data)[edit-1].date)
+		} else {
+			fmt.Println("data tidak ditemukan")
 		}
 		note(data)
 		crud(data)
@@ -152,7 +181,7 @@ func crud(data *list) {
 // untuk menampilkan data
 func read(data list) {
 	fmt.Println("===================================================")
-	fmt.Println("no   name   nominal   tanggal  katergori  status")
+	fmt.Println("no   name   nominal   tanggal bayar  katergori  status")
 	fmt.Println("---------------------------------------------------")
 	for _, vel := range data {
 		fmt.Println(vel.index, " ", vel.name, " ", vel.nominal, " ", vel.date, " ", vel.kategori, " ", vel.statusString)
@@ -170,11 +199,11 @@ func note(data *list) {
 			(*data)[i].statusString = "Utang"
 		}
 		if vel.nominal >= 500 {
-			(*data)[i].kategori = "Berat"
+			(*data)[i].kategori = "Besar"
 		} else if vel.nominal >= 100 {
 			(*data)[i].kategori = "Menengah"
 		} else {
-			(*data)[i].kategori = "Ringan"
+			(*data)[i].kategori = "Kecil"
 		}
 	}
 }
@@ -207,19 +236,32 @@ func searchName(data list) {
 	var med int
 	var kr int = 0
 	var kn int = len(data) - 1
+
+	// selection data name untuk mengurutkan alfabet
+	for i := 0; i < len(data)-1; i++ {
+		min := i
+		for j := i + 1; j < len(data); j++ {
+			if data[j].name < data[min].name {
+				min = j
+			}
+		}
+		data[i], data[min] = data[min], data[i]
+	}
+
 	for kr <= kn && !found {
 		med = (kr + kn) / 2
-		if X > data[med].name {
-			kn = med - 1
-		} else if X < data[med].name {
-			kr = med + 1
-		} else {
+		if X == data[med].name {
+			fmt.Println(data[med].index, " ", data[med].name, " ", data[med].nominal, " ", data[med].date, " ", data[med].kategori, " ", data[med].statusString)
 			found = true
+		}
+		if X > data[med].name {
+			kr = med + 1
+		} else if X < data[med].name {
+			kn = med - 1
 		}
 	}
 	if found == true {
 		fmt.Println("data ditemukan")
-		fmt.Println(data[med].index, " ", data[med].name, " ", data[med].nominal, " ", data[med].date, " ", data[med].kategori, " ", data[med].statusString)
 	} else {
 		fmt.Println("data tidak ditemukan")
 	}
@@ -228,72 +270,68 @@ func searchName(data list) {
 // selectionSort
 func selectionSort(data list) {
 	for i := 0; i < len(data)-1; i++ {
-			min := i
-			for j := i + 1; j < len(data); j++ {
-				if data[j].date < data[min].date {
-					min = j
-				}
+		min := i
+		for j := i + 1; j < len(data); j++ {
+			if data[j].date < data[min].date {
+				min = j
 			}
-			data[i], data[min] = data[min], data[i]
+		}
+		data[i], data[min] = data[min], data[i]
 	}
 	read(data)
 }
 
 // insertionSort
-func insertionSort(data list){
+func insertionSort(data list) {
 	for i := 0; i < len(data); i++ {
-		key:= data[i]
-		j := i-1
-		for j >= 0 && data[j].nominal> key.nominal{
+		key := data[i]
+		j := i - 1
+		for j >= 0 && data[j].nominal > key.nominal {
 			data[j+1] = data[j]
 			j--
 		}
-		data[j+1]=key
+		data[j+1] = key
 	}
 	read(data)
 }
 
-// validate lunas 
-func validate(data *list){
+// validate lunas
+func validate(data *list) {
 	var found bool
 	var index int
 	fmt.Print("masukan index data yang dilunasi:")
 	fmt.Scan(&index)
-	for i,vel := range *data{
-		if index == vel.index{
+	for i, vel := range *data {
+		if index == vel.index {
 			(*data)[i].status = true
 			found = true
 		}
 	}
-	if found{
+	if found {
 		fmt.Println("Berhasil")
-	}else{
+	} else {
 		fmt.Println("data tidak di temukan")
 	}
 	note(data)
 }
 
 // manghitung statistik
-func statistik(data list){
+func statistik(data list) (list, list) {
 	var dataLunas, dataUtang list
-	for _,vel := range data{
-		if vel.status{
+	for _, vel := range data {
+		if vel.status {
 			dataLunas = append(dataLunas, vel)
-		}else{
+		} else {
 			dataUtang = append(dataUtang, vel)
 		}
 	}
-	lunas := total(dataLunas)
-	utang := total(dataUtang)
-	fmt.Println("total Lunas:",lunas,"total Utang:",utang)
-	fmt.Println("persentase Lunas:",(lunas/total(data))*100,"%")
-	fmt.Println("persentase Utang:",(utang/total(data))*100,"%")
+	return dataLunas, dataUtang
 }
 
-// menghitung total 
-func total(data list)float32{
+// menghitung total
+func total(data list) float32 {
 	var total float32
-	for _,vel := range data{
+	for _, vel := range data {
 		total += float32(vel.nominal)
 	}
 	return total
